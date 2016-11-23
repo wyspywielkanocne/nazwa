@@ -1,0 +1,43 @@
+# nazwaimport java.io.*;
+/**
+ * TestFilesGenerator
+ * Generates 10 files with random content
+ * One of the values is manipulated by this application
+ * @author Yuras
+ */
+public class TestFilesGenerator
+{
+    /**
+     * File writer
+     */
+    private static FileOutputStream oFileOutputStream;
+ 
+    /**
+     * Main method
+     * @param args
+     */
+    public static void main(String args[])
+    {
+        try
+        {
+            for(int i=1;i<10;i++)
+            {
+                oFileOutputStream = new FileOutputStream("plik"+i+ ".dat");
+                for(int j=0;j<50;j++)
+                {
+                    oFileOutputStream.write((int)(Math.random()*10));
+                }
+                oFileOutputStream.write(i);
+                for(int j=0;j<49;j++)
+                {
+                    oFileOutputStream.write((int)(Math.random()*10));
+                }
+                oFileOutputStream.close();
+            }
+        }
+        catch (IOException ex)
+        {
+            System.err.println("Aplikacja wygenerowała następujący błąd: " +ex);
+        }
+    }
+}
