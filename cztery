@@ -1,0 +1,74 @@
+/******************************************************************************/
+/*
+    JavaScript Sample Code
+    * File encoding: UTF-8
+    * Script compatibility: Gecko 1.8
+*/
+/******************************************************************************/
+//  GLOBAL VARIABLES DEFINITIONS
+var httpRequest = null;
+//  FUNCTION DETECTING MSIE BROWSER
+function isIE(){
+    if(-1 != navigator.userAgent.indexOf("MSIE")) { return true; } else { return false; }
+}
+//  CROSS-BROWSER FUNCTIONS USED TO DETECT VARIOUS OBJECTS' PROPERTIES 
+function screenWidth() {
+    if( typeof( window.innerWidth ) == 'number' ) {
+        // Mozilla compliant
+        return window.innerWidth;
+    } else {
+        if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+            //IE 6+ in 'standards compliant mode'
+            return document.documentElement.clientWidth;
+        } else {
+            if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+            //IE 4 compatible
+            return document.body.clientWidth;
+            }
+        }
+    }
+}
+function screenHeight() {
+    if( typeof( window.innerWidth ) == 'number' ) {
+        // Mozilla compliant
+        return window.innerHeight;
+    } else {
+        if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+            //IE 6+ in 'standards compliant mode'
+            return document.documentElement.clientHeight;
+        } else {
+            if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+                //IE 4 compatible
+                return document.body.clientHeight;
+            } else {
+                //  Other browsers?
+                return 0;
+            }
+        }
+    }
+}
+function getTextContent(elm) {
+    return ( elm.textContent || elm.innerText || elm.text );
+}
+function getVerticalOffset() {
+    if ( window.pageYOffset ) {
+        //  Mozilla compliant
+        return window.pageYOffset;
+    } else if ( document.body.scrollTop ) {
+        //  MSIE 6+ compliant
+        return document.body.scrollTop;
+    } else if ( document.documentElement.scrollTop ) {
+        //  MSIE <6
+        return document.documentElement.scrollTop;
+    } else {
+        //  Other browsers?
+        return 0;
+    }
+}
+function createNewElement(sTag){
+    //  IE6 supports only uppercase tags to create DOM elements
+    if (isIE()) { obj = document.createElement(sTag.toUpperCase()); }
+    //  Other browsers are not as buggy
+    else { obj = document.createElement(sTag); }
+    return obj;
+}
