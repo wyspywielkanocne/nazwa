@@ -1,0 +1,100 @@
+class procms_picture {
+    private $img; // Image data
+    private $width; // Output image width
+    private $height; // Output image height
+    private $prefs; // reference variable to preferences
+    private $preserve; // bool, determines whether to preserve aspect ratio or not
+    private $background = array ( 255, 255, 255 ); // background color for resized image
+    public function __construct ( $width = null, $height = null ) {
+        //  Preferences containing default values should be loaded first
+        if ( !isset ( $GLOBALS['prefs'] ) ) 
+            die ( "procms_picture::__construct(): class procms_preferences must be initialized first!" );
+        else 
+            $this->prefs =& $GLOBALS['prefs'];
+        //  Check if picture size was specified on construction. Otherwise, use default values from preferences
+        if ( $width ) $this->width = $width; else $this->width = $this->prefs->default_thumbnail_x;
+        if ( $height ) $this->height = $height; else $this->height = $this->prefs->default_thumbnail_y;
+        //  Get information from preferences about preserving apect ratio on resizing
+        $this->preserve = $this->prefs->thumbnail_preserve_side;
+    }
+    private function getFileType ( $filename ) {
+        //  Get EXIF data from image and determine filetype
+        $exif = getimagesize ( $filename );
+        switch ( $exif [2] ) {
+        case IMAGETYPE_GIF:
+            $img = imagecreatefromgif ( $filename );
+            if ( !$img ) return false; else return $img;
+        break;
+        case IMAGETYPE_JPEG:
+            $img = imagecreatefromjpeg ( $filename );
+            if ( !$img ) return false; else return $img;
+        break;
+        case IMAGETYPE_PNG:
+            $img = imagecreatefrompng ( $filename );
+            if ( !$img ) return false; else return $img;
+        break;
+        default:
+            //  If unknown or unsuported filetype, return false
+            return false;
+        }   
+    }
+    private function resize() {
+        //  Get original image size
+        $old_height = imagesy ( $this->img );
+        $old_width  = imagesx ( $this->img );
+        //  Check if image should be resized
+        if ( ( $this->width < $old_width ) || ( $this->height < $old_height ) ) {
+            //  Check picture orientation (landscape or portrait)
+            if ( $old_height > $old_width ) {
+                //  Portrait
+                $y = $this->height;
+                $x = round ( ($old_width/$old_height)*$y );
+            } else {
+                //  Landscape
+                $x = $this->width;
+                $y = round ( ($old_height/$old_width)*$x );
+            }
+        } else {
+            //  If original image is smaller than requested thumbnail, exit
+            return true;
+        }
+        //  Create resized image
+        $imgnew = imagecreatetruecolor($x, $y);
+        //  Resize picture
+        if ( !imagecopyresampled ($imgnew, $this->img, 0, 0, 0, 0, $x, $y, $old_width, $old_height) ) return false;
+        $this->img = $imgnew;
+        //  Destroy unused variable
+        imagedestroy ( $imgnew );
+        return true;
+
+    }
+    public function loadFromFile ( $filename ) {
+        $this->img = $this->getFileType ( $filename );
+        if ( !$this->img ) return ERROR_UNKNOWN_FILE_FORMAT;
+        if ( $this->preserve == 'none' ) return true;
+        if ( !$this->resize() ) return ERROR_CANT_RESIZE_PICUTRE;
+    }
+    
+    public function returnBinary ( $format ) {
+        //  return binary string in order to construct SQL query
+        ob_start();
+        switch ( $format ) {
+            case 'png':
+                imagepng ( $this->img );
+            break;
+            case 'gif':
+                imagegif ( $this->img );
+            break;
+            case 'jpg':
+                imagejpeg ( $this->img );
+            break;
+            default:
+                //  Because function is to return part of SQL query, if specified format was incorrect returning NULL string will avoid future errors.
+                return "NULL";
+        }
+        $data = ob_get_contents();
+        ob_end_clean();
+        $data = "0x" . bin2hex ( $data );
+        return $data;
+    }
+}
